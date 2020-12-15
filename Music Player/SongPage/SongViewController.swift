@@ -6,8 +6,8 @@
 //
 
 import UIKit
-import AVFoundation
-
+import AVKit
+import MediaPlayer
 
 class SongViewController: UIViewController {
     
@@ -21,6 +21,9 @@ class SongViewController: UIViewController {
     
     @IBOutlet weak var startTime: UILabel!
     @IBOutlet weak var endTime: UILabel!
+    
+    @IBOutlet weak var pipButton: UIButton!
+    
     var songs: [Song] = []
     var position: Int = 0
     
@@ -34,6 +37,7 @@ class SongViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        
         let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(respondToSwipeGesture))
         swipeRight.direction = .right
         self.view.addGestureRecognizer(swipeRight)
@@ -42,7 +46,57 @@ class SongViewController: UIViewController {
         swipeLeft.direction = .left
         self.view.addGestureRecognizer(swipeLeft)
         
+        setupRemoteTransportControls()
+        setupNowPlaying()
+        
+        
     }
+    
+    func setupRemoteTransportControls() {
+        // Get the shared MPRemoteCommandCenter
+        
+        let commandCenter = MPRemoteCommandCenter.shared()
+
+        // Add handler for Play Command
+        commandCenter.playCommand.addTarget { [unowned self] event in
+            print("Play command - is playing: \(self.player!.isPlaying)")
+            if !self.player!.isPlaying {
+                player?.play()
+                return .success
+            }
+            return .commandFailed
+        }
+
+        // Add handler for Pause Command
+        commandCenter.pauseCommand.addTarget { [unowned self] event in
+            print("Pause command - is playing: \(self.player!.isPlaying)")
+            if self.player!.isPlaying {
+                player?.pause()
+                return .success
+            }
+            return .commandFailed
+        }
+        
+        commandCenter.nextTrackCommand.addTarget { [unowned self] event in
+            print("Next track command - is playing: \(self.player!.isPlaying)")
+
+                nextSong(self)
+            setupNowPlaying()
+
+            return .success
+        }
+
+        commandCenter.previousTrackCommand.addTarget { [unowned self] event in
+            print("Previous track command - is playing: \(self.player!.isPlaying)")
+
+            previousSong(self)
+             
+            setupNowPlaying()
+
+            return .success
+        }
+    }
+    
     
     @objc func respondToSwipeGesture(gesture: UIGestureRecognizer) {
         
@@ -60,6 +114,25 @@ class SongViewController: UIViewController {
             
         }
     }
+    
+    func setupNowPlaying() {
+        // Define Now Playing Info
+        var nowPlayingInfo = [String : Any]()
+        nowPlayingInfo[MPMediaItemPropertyTitle] = songs[position].trackName.capitalized
+
+        if let image = UIImage(named: songs[position].trackName) {
+            nowPlayingInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { size in
+                return image
+            }
+        }
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player?.currentTime
+        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = player?.duration
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player?.rate
+
+        // Set the metadata
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
@@ -187,7 +260,12 @@ class SongViewController: UIViewController {
         
         if (player!.isPlaying) {
             
-            playButton.setBackgroundImage(UIImage(systemName: "play.fill"), for: .normal)
+            
+            if #available(iOS 13.0, *) {
+                playButton.setBackgroundImage(UIImage(systemName: "play.fill"), for: .normal)
+            } else {
+                // Fallback on earlier versions
+            }
             
             progress.pause()
             setTimer()
@@ -198,7 +276,12 @@ class SongViewController: UIViewController {
             
         }
         else {
-            playButton.setBackgroundImage(UIImage(systemName: "pause.fill"), for: .normal)
+            
+            if #available(iOS 13.0, *) {
+                playButton.setBackgroundImage(UIImage(systemName: "pause.fill"), for: .normal)
+            } else {
+                // Fallback on earlier versions
+            }
             player?.play()
             
             

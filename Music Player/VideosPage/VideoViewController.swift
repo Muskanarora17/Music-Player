@@ -63,6 +63,8 @@ extension VideoViewController: UITableViewDataSource, UITableViewDelegate {
         let vc = AVPlayerViewController()
                 vc.player = player
                 present(vc, animated: true)
+        print(AVPictureInPictureController.isPictureInPictureSupported())
+        
         
         
     }

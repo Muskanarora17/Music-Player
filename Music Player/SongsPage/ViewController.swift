@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import AVKit
 
 class ViewController: UIViewController {
     
@@ -21,6 +22,8 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        
+        print(AVPictureInPictureController.isPictureInPictureSupported())
         playButton.layer.cornerRadius = playButton.frame.size.height/2
     
         configure()
