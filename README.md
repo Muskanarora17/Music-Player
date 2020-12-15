@@ -1,5 +1,5 @@
 # Music-Player
-A music/video player with basic functionalities such a seek forward, backward, play next/previous song etc.
+This repo contains a music/video player with basic functionalities such a seek forward, backward, play next/previous song etc.
 
 With the second commit now it has background audio and play,pause,next,and previous commands in the control center and lock screen.
 
